@@ -7,6 +7,8 @@
 class UCameraComponent;
 class USpringArmComponent;
 
+class AARProjectile;
+
 UCLASS()
 class ACTIONROUGELIKE_API AARCharacter : public ACharacter
 {
@@ -34,4 +36,9 @@ protected:
 	void MoveForward(float InAxis);
 
 	void MoveRight(float InAxis);
+
+	void PrimaryAttack();
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AARProjectile> ProjectileClass;
 };
