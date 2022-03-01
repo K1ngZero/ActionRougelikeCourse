@@ -5,9 +5,11 @@
 #include "ARCharacter.generated.h"
 
 class UCameraComponent;
+class UAnimMontage;
 class USpringArmComponent;
 
 class AARProjectile;
+class UARInteractionComponent;
 
 UCLASS()
 class ACTIONROUGELIKE_API AARCharacter : public ACharacter
@@ -21,6 +23,9 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* CameraComponent = nullptr;
 
+	UPROPERTY(VisibleAnywhere)
+	UARInteractionComponent* InteractionComponent = nullptr;
+
 public:
 	AARCharacter();
 
@@ -32,6 +37,8 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const override;
+
 protected:
 	void MoveForward(float InAxis);
 
@@ -39,6 +46,15 @@ protected:
 
 	void PrimaryAttack();
 
-	UPROPERTY(EditDefaultsOnly)
+	void PrimaryAttack_TimeElapsed();
+
+	void PrimaryInteract();
+
+	FTimerHandle TimerHandle_PrimaryAttack;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
 	TSubclassOf<AARProjectile> ProjectileClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	UAnimMontage* AttackAnimation;
 };

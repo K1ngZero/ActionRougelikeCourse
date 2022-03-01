@@ -4,6 +4,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
+#include "Interactive/ARInteractionComponent.h"
 #include "Projectile/ARProjectile.h"
 
 AARCharacter::AARCharacter()
@@ -17,6 +18,8 @@ AARCharacter::AARCharacter()
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetupAttachment(SpringArmComponent);
 
+	InteractionComponent = CreateDefaultSubobject<UARInteractionComponent>(TEXT("InteractionComponent"));
+
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	bUseControllerRotationYaw = false;
@@ -25,7 +28,7 @@ AARCharacter::AARCharacter()
 void AARCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 void AARCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -41,12 +44,19 @@ void AARCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAction(FName("PrimaryAttack"), IE_Pressed, this, &ThisClass::PrimaryAttack);
 
 	PlayerInputComponent->BindAction(FName("Jump"), IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction(FName("PrimaryInteract"), IE_Pressed, this, &ThisClass::PrimaryInteract);
 }
 
 void AARCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AARCharacter::GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const
+{
+	OutLocation = CameraComponent->GetComponentLocation();
+	OutRotation = CameraComponent->GetComponentRotation();
 }
 
 void AARCharacter::MoveForward(float InAxis)
@@ -71,14 +81,44 @@ void AARCharacter::MoveRight(float InAxis)
 
 void AARCharacter::PrimaryAttack()
 {
+	if (!TimerHandle_PrimaryAttack.IsValid())
+	{
+		PlayAnimMontage(AttackAnimation);
+		GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ThisClass::PrimaryAttack_TimeElapsed, 0.2f);
+	}
+}
+
+void AARCharacter::PrimaryAttack_TimeElapsed()
+{
+	TimerHandle_PrimaryAttack.Invalidate();
+
 	FVector HandLocation = GetMesh()->GetSocketLocation(FName("Muzzle_01"));
-	FTransform ProjectileSpawnTransform = FTransform(GetControlRotation(), HandLocation);
+	FVector TraceStart = CameraComponent->GetComponentLocation();
+	FVector TraceEnd = TraceStart + CameraComponent->GetForwardVector() * 100000.0f;
+
+	FHitResult OutResult;
+	FVector HitLocation = [&]() -> FVector
+	{
+		if (GetWorld()->LineTraceSingleByChannel(OutResult, TraceStart, TraceEnd, ECollisionChannel::ECC_WorldStatic))
+		{
+			return OutResult.Location;
+		}
+		return TraceEnd;
+	}();
+
+	FRotator ProjectileRotation = FRotationMatrix::MakeFromX(HitLocation - HandLocation).Rotator();
+
+	FTransform ProjectileSpawnTransform = FTransform(ProjectileRotation, HandLocation);
 
 	FActorSpawnParameters SpawnParameters;
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnParameters.Instigator = this;
 	SpawnParameters.Owner = GetController();
-	
+
 	GetWorld()->SpawnActor<AARProjectile>(ProjectileClass, ProjectileSpawnTransform, SpawnParameters);
 }
 
+void AARCharacter::PrimaryInteract()
+{
+	InteractionComponent->PrimaryInteract();
+}
