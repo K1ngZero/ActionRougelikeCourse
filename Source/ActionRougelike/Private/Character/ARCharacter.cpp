@@ -4,6 +4,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
+#include "Attributes/ARAttributeComponent.h"
 #include "Interactive/ARInteractionComponent.h"
 #include "Projectile/ARProjectile.h"
 
@@ -23,6 +24,8 @@ AARCharacter::AARCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	bUseControllerRotationYaw = false;
+
+	AttributeComponent = CreateDefaultSubobject<UARAttributeComponent>(TEXT("AttributeComponent"));
 }
 
 void AARCharacter::BeginPlay()

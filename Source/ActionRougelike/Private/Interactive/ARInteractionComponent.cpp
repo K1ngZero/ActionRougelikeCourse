@@ -53,6 +53,8 @@ void UARInteractionComponent::PrimaryInteract()
 				APawn* MyPawn = Cast<APawn>(GetOwner());
 
 				IARInteractiveInterface::Execute_Interact(HitActor, MyPawn);
+
+				break;
 			}
 		}
 

@@ -17,10 +17,10 @@ class ACTIONROUGELIKE_API AARItemChest : public AActor, public IARInteractiveInt
 	GENERATED_BODY()
 	
 protected:
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent* BaseMesh;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent* LidMesh;
 
 public:

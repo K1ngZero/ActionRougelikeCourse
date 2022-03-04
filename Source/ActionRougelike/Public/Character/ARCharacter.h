@@ -8,6 +8,7 @@ class UCameraComponent;
 class UAnimMontage;
 class USpringArmComponent;
 
+class UARAttributeComponent;
 class AARProjectile;
 class UARInteractionComponent;
 
@@ -25,6 +26,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	UARInteractionComponent* InteractionComponent = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UARAttributeComponent* AttributeComponent = nullptr;
 
 public:
 	AARCharacter();
