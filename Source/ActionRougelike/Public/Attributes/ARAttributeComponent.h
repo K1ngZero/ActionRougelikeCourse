@@ -23,9 +23,12 @@ protected:
 	float Health;
 
 public:
-	UPROPERTY(BlueprintAssignable)
-	FAROnAttributeChangedSignature OnHealthChangedDelegate;
-
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
 	bool ApplyHealthChange(float Delta);
+
+	UFUNCTION(BlueprintPure)
+	bool IsAlive() const;
+
+	UPROPERTY(BlueprintAssignable)
+	FAROnAttributeChangedSignature OnHealthChangedDelegate;
 };

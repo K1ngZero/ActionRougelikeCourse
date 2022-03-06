@@ -10,7 +10,7 @@ class UParticleSystemComponent;
 class UProjectileMovementComponent;
 class USphereComponent;
 
-UCLASS()
+UCLASS(Abstract)
 class ACTIONROUGELIKE_API AARProjectile : public AActor
 {
 	GENERATED_BODY()
@@ -28,13 +28,23 @@ protected:
 public:	
 	AARProjectile();
 
+	virtual void PostInitializeComponents() override;
+
 protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
 	void OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-public:	
-	virtual void Tick(float DeltaTime) override;
+	UFUNCTION()
+	virtual void OnActorHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& HitResult);
 
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void Explode();
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile|Effects")
+	UParticleSystem* ImpactVFX = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile|Damage")
+	float DamageValue = 2.0f;
 };

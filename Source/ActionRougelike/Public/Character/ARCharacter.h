@@ -52,13 +52,36 @@ protected:
 
 	void PrimaryAttack_TimeElapsed();
 
+	void SecondaryAttack();
+
+	void SecondaryAttack_TimeElapsed();
+
+	void Dash();
+
+	void Dash_TimeElapsed();
+
 	void PrimaryInteract();
 
-	FTimerHandle TimerHandle_PrimaryAttack;
+	void SpawnProjectile(TSubclassOf<AARProjectile> InProjectileClass);
+
+	UFUNCTION()
+	void OnHealthChanged(AActor* InstigatorActor, UARAttributeComponent* OwningComponent, float InNewHealth, float InOldHealth);
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	TSubclassOf<AARProjectile> PrimaryAttackProjectileClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Attack")
-	TSubclassOf<AARProjectile> ProjectileClass;
+	TSubclassOf<AARProjectile> SecondaryAttackProjectileClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Attack")
+	TSubclassOf<AARProjectile> DashProjectileClass;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Attack")
 	UAnimMontage* AttackAnimation;
+
+	FTimerHandle TimerHandle_PrimaryAttack;
+
+	FTimerHandle TimerHandle_SecondaryAttack;
+
+	FTimerHandle TimerHandle_DashAttack;
 };

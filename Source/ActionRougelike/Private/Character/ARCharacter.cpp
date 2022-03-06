@@ -32,6 +32,7 @@ void AARCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	AttributeComponent->OnHealthChangedDelegate.AddDynamic(this, &ThisClass::OnHealthChanged);
 }
 
 void AARCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -45,6 +46,8 @@ void AARCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAxis(FName("TurnY"), this, &ThisClass::AddControllerPitchInput);
 
 	PlayerInputComponent->BindAction(FName("PrimaryAttack"), IE_Pressed, this, &ThisClass::PrimaryAttack);
+	PlayerInputComponent->BindAction(FName("SecondaryAttack"), IE_Pressed, this, &ThisClass::SecondaryAttack);
+	PlayerInputComponent->BindAction(FName("DashAttack"), IE_Pressed, this, &ThisClass::Dash);
 
 	PlayerInputComponent->BindAction(FName("Jump"), IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction(FName("PrimaryInteract"), IE_Pressed, this, &ThisClass::PrimaryInteract);
@@ -94,34 +97,80 @@ void AARCharacter::PrimaryAttack()
 void AARCharacter::PrimaryAttack_TimeElapsed()
 {
 	TimerHandle_PrimaryAttack.Invalidate();
+	SpawnProjectile(PrimaryAttackProjectileClass);
+}
 
-	FVector HandLocation = GetMesh()->GetSocketLocation(FName("Muzzle_01"));
-	FVector TraceStart = CameraComponent->GetComponentLocation();
+void AARCharacter::SecondaryAttack()
+{
+	if (!TimerHandle_SecondaryAttack.IsValid())
+	{
+		PlayAnimMontage(AttackAnimation);
+		GetWorldTimerManager().SetTimer(TimerHandle_SecondaryAttack, this, &ThisClass::SecondaryAttack_TimeElapsed, 0.2f);
+	}
+}
+
+void AARCharacter::SecondaryAttack_TimeElapsed()
+{
+	TimerHandle_SecondaryAttack.Invalidate();
+	SpawnProjectile(SecondaryAttackProjectileClass);
+}
+
+void AARCharacter::Dash()
+{
+	if (!TimerHandle_DashAttack.IsValid())
+	{
+		PlayAnimMontage(AttackAnimation);
+		GetWorldTimerManager().SetTimer(TimerHandle_DashAttack, this, &ThisClass::Dash_TimeElapsed, 0.2f);
+	}
+}
+
+void AARCharacter::Dash_TimeElapsed()
+{
+	TimerHandle_DashAttack.Invalidate();
+	SpawnProjectile(DashProjectileClass);
+}
+
+void AARCharacter::PrimaryInteract()
+{
+	InteractionComponent->PrimaryInteract();
+}
+
+void AARCharacter::SpawnProjectile(TSubclassOf<AARProjectile> InProjectileClass)
+{
+	if (!ensureAlways(InProjectileClass))
+	{
+		return;
+	}
+
+	const FCollisionShape TraceShape(FCollisionShape::MakeSphere(20.0f));
+	const FCollisionQueryParams TraceCollisionParams(FName("CharacterSpawnProjectile"), false, this);
+	const FCollisionObjectQueryParams TraceObjectParams(ECC_TO_BITFIELD(ECC_WorldDynamic | ECC_WorldStatic | ECC_Pawn));
+
+	const FVector HandLocation = GetMesh()->GetSocketLocation(FName("Muzzle_01"));
+	const FVector TraceStart = CameraComponent->GetComponentLocation();
 	FVector TraceEnd = TraceStart + CameraComponent->GetForwardVector() * 100000.0f;
 
 	FHitResult OutResult;
-	FVector HitLocation = [&]() -> FVector
+	if (GetWorld()->SweepSingleByObjectType(OutResult, TraceStart, TraceEnd, FQuat::Identity, TraceObjectParams, TraceShape, TraceCollisionParams))
 	{
-		if (GetWorld()->LineTraceSingleByChannel(OutResult, TraceStart, TraceEnd, ECollisionChannel::ECC_WorldStatic))
-		{
-			return OutResult.Location;
-		}
-		return TraceEnd;
-	}();
+		TraceEnd = OutResult.Location;
+	}
 
-	FRotator ProjectileRotation = FRotationMatrix::MakeFromX(HitLocation - HandLocation).Rotator();
-
-	FTransform ProjectileSpawnTransform = FTransform(ProjectileRotation, HandLocation);
+	const FRotator ProjectileRotation = FRotationMatrix::MakeFromX(TraceEnd - HandLocation).Rotator();
+	const FTransform ProjectileSpawnTransform = FTransform(ProjectileRotation, HandLocation);
 
 	FActorSpawnParameters SpawnParameters;
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	SpawnParameters.Instigator = this;
 	SpawnParameters.Owner = GetController();
 
-	GetWorld()->SpawnActor<AARProjectile>(ProjectileClass, ProjectileSpawnTransform, SpawnParameters);
+	GetWorld()->SpawnActor<AARProjectile>(InProjectileClass, ProjectileSpawnTransform, SpawnParameters);
 }
 
-void AARCharacter::PrimaryInteract()
+void AARCharacter::OnHealthChanged(AActor* InstigatorActor, UARAttributeComponent* OwningComponent, float InNewHealth, float InOldHealth)
 {
-	InteractionComponent->PrimaryInteract();
+	if (InNewHealth <= 0.0f && InOldHealth > 0.0f)
+	{
+		DisableInput(GetController<APlayerController>());
+	}
 }

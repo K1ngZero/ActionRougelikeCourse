@@ -2,6 +2,7 @@
 
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 
 #include "Attributes/ARAttributeComponent.h"
@@ -21,14 +22,22 @@ AARProjectile::AARProjectile()
 	ProjectileMovementComponent->InitialSpeed = 1000.0f;
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
 	ProjectileMovementComponent->bInitialVelocityInLocalSpace = true;
+	ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
+}
+
+void AARProjectile::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnActorOverlap);
+	SphereComponent->OnComponentHit.AddDynamic(this, &ThisClass::OnActorHit);
+
+	SphereComponent->IgnoreActorWhenMoving(GetInstigator(), true);
 }
 
 void AARProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnActorOverlap);
-	SphereComponent->IgnoreActorWhenMoving(GetInstigator(), true);
 }
 
 void AARProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -37,16 +46,24 @@ void AARProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 	{
 		if (UARAttributeComponent* AttributeComponent = Cast<UARAttributeComponent>(OtherActor->GetComponentByClass(UARAttributeComponent::StaticClass())))
 		{
-			AttributeComponent->ApplyHealthChange(-20.0f);
+			AttributeComponent->ApplyHealthChange(-DamageValue);
 
 			Destroy();
 		}
 	}
 }
 
-void AARProjectile::Tick(float DeltaTime)
+void AARProjectile::OnActorHit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& HitResult)
 {
-	Super::Tick(DeltaTime);
-
+	Explode();
 }
 
+void AARProjectile::Explode_Implementation()
+{
+	if (ensure(!IsPendingKill()))
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(this, ImpactVFX, GetActorLocation(), GetActorRotation());
+
+		Destroy();
+	}
+}
