@@ -3,6 +3,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "Attributes/ARAttributeComponent.h"
 #include "Interactive/ARInteractionComponent.h"
@@ -144,7 +145,7 @@ void AARCharacter::SpawnProjectile(TSubclassOf<AARProjectile> InProjectileClass)
 
 	const FCollisionShape TraceShape(FCollisionShape::MakeSphere(20.0f));
 	const FCollisionQueryParams TraceCollisionParams(FName("CharacterSpawnProjectile"), false, this);
-	const FCollisionObjectQueryParams TraceObjectParams(ECC_TO_BITFIELD(ECC_WorldDynamic | ECC_WorldStatic | ECC_Pawn));
+	const FCollisionObjectQueryParams TraceObjectParams(ECC_TO_BITFIELD(ECC_WorldDynamic) | ECC_TO_BITFIELD(ECC_WorldStatic) | ECC_TO_BITFIELD(ECC_Pawn));
 
 	const FVector HandLocation = GetMesh()->GetSocketLocation(FName("Muzzle_01"));
 	const FVector TraceStart = CameraComponent->GetComponentLocation();
@@ -164,7 +165,13 @@ void AARCharacter::SpawnProjectile(TSubclassOf<AARProjectile> InProjectileClass)
 	SpawnParameters.Instigator = this;
 	SpawnParameters.Owner = GetController();
 
-	GetWorld()->SpawnActor<AARProjectile>(InProjectileClass, ProjectileSpawnTransform, SpawnParameters);
+	if (AARProjectile* SpawnedProjectile = GetWorld()->SpawnActor<AARProjectile>(InProjectileClass, ProjectileSpawnTransform, SpawnParameters))
+	{
+		if (SpawnedProjectile->GetSpawnVFX())
+		{
+			UGameplayStatics::SpawnEmitterAttached(SpawnedProjectile->GetSpawnVFX(), GetMesh(), FName("Muzzle_01"), HandLocation, ProjectileRotation);
+		}
+	}
 }
 
 void AARCharacter::OnHealthChanged(AActor* InstigatorActor, UARAttributeComponent* OwningComponent, float InNewHealth, float InOldHealth)

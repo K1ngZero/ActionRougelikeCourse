@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "ARProjectile.generated.h"
 
+class UCameraShakeBase;
 class UParticleSystemComponent;
 class UProjectileMovementComponent;
 class USphereComponent;
@@ -30,9 +31,9 @@ public:
 
 	virtual void PostInitializeComponents() override;
 
-protected:
-	virtual void BeginPlay() override;
+	UParticleSystem* GetSpawnVFX() const { return SpawnVFX; }
 
+protected:
 	UFUNCTION()
 	void OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
@@ -43,8 +44,20 @@ protected:
 	void Explode();
 
 	UPROPERTY(EditDefaultsOnly, Category = "Projectile|Effects")
+	UParticleSystem* SpawnVFX = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile|Effects")
 	UParticleSystem* ImpactVFX = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Projectile|Damage")
 	float DamageValue = 2.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile|Hit")
+	TSubclassOf<UCameraShakeBase> HitCameraShakeClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile|Hit")
+	float HitCameraShakeInnerRadius;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile|Hit")
+	float HitCameraShakeOuterRadius;
 };

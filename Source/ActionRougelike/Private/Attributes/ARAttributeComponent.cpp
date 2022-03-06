@@ -5,17 +5,19 @@ UARAttributeComponent::UARAttributeComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 
 	Health = 100.0f;
+	HealthMax = 100.0f;
 }
 
 void UARAttributeComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	Health = HealthMax;
 }
 
 bool UARAttributeComponent::ApplyHealthChange(float Delta)
 {
 	const float OldHealth = Health;
-	Health = FMath::Clamp(Health + Delta, 0.0f, 100.0f);
+	Health = FMath::Clamp(Health + Delta, 0.0f, HealthMax);
 
 	OnHealthChangedDelegate.Broadcast(nullptr, this, Health, OldHealth);
 
