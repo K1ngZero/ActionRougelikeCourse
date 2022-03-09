@@ -19,12 +19,11 @@ bool UARAttributeComponent::ApplyHealthChange(float Delta)
 	const float OldHealth = Health;
 	Health = FMath::Clamp(Health + Delta, 0.0f, HealthMax);
 
-	OnHealthChangedDelegate.Broadcast(nullptr, this, Health, OldHealth);
+	if(Health != OldHealth)
+	{
+		OnHealthChangedDelegate.Broadcast(nullptr, this, Health, OldHealth);
 
-	return true;
-}
-
-bool UARAttributeComponent::IsAlive() const
-{
-	return Health > 0.0f;
+		return true;
+	}
+	return false;
 }

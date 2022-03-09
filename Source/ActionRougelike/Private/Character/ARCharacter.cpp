@@ -5,7 +5,6 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-#include "Attributes/ARAttributeComponent.h"
 #include "Interactive/ARInteractionComponent.h"
 #include "Projectile/ARProjectile.h"
 
@@ -25,15 +24,6 @@ AARCharacter::AARCharacter()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
 	bUseControllerRotationYaw = false;
-
-	AttributeComponent = CreateDefaultSubobject<UARAttributeComponent>(TEXT("AttributeComponent"));
-}
-
-void AARCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-
-	AttributeComponent->OnHealthChangedDelegate.AddDynamic(this, &ThisClass::OnHealthChanged);
 }
 
 void AARCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -52,12 +42,6 @@ void AARCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 	PlayerInputComponent->BindAction(FName("Jump"), IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction(FName("PrimaryInteract"), IE_Pressed, this, &ThisClass::PrimaryInteract);
-}
-
-void AARCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
 }
 
 void AARCharacter::GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const
@@ -174,10 +158,7 @@ void AARCharacter::SpawnProjectile(TSubclassOf<AARProjectile> InProjectileClass)
 	}
 }
 
-void AARCharacter::OnHealthChanged(AActor* InstigatorActor, UARAttributeComponent* OwningComponent, float InNewHealth, float InOldHealth)
+void AARCharacter::OnCharacterDied()
 {
-	if (InNewHealth <= 0.0f && InOldHealth > 0.0f)
-	{
-		DisableInput(GetController<APlayerController>());
-	}
+	DisableInput(GetController<APlayerController>());
 }

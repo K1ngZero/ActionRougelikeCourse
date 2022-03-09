@@ -28,13 +28,13 @@ void AARPowerup::BeginPlay()
 void AARPowerup::SpawnPowerup()
 {
 	MeshComponent->SetScalarParameterValueOnMaterials(FName("bIsSpawned"), 1.0f);
-	SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	SetActorEnableCollision(true);
 }
 
 void AARPowerup::DespawnPowerup()
 {
 	MeshComponent->SetScalarParameterValueOnMaterials(FName("bIsSpawned"), 0.0f);
-	SphereComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SetActorEnableCollision(false);
 }
 
 void AARPowerup::Interact_Implementation(APawn* InstigatorPawn)

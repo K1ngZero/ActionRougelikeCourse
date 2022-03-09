@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "ARProjectile.generated.h"
 
+class UAudioComponent;
 class UCameraShakeBase;
 class UParticleSystemComponent;
 class UProjectileMovementComponent;
@@ -22,6 +23,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere)
 	UParticleSystemComponent* EffectComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	UAudioComponent* AudioComponent;
 
 	UPROPERTY(VisibleAnywhere)
 	UProjectileMovementComponent* ProjectileMovementComponent;

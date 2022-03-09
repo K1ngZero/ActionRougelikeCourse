@@ -30,7 +30,16 @@ public:
 	bool ApplyHealthChange(float Delta);
 
 	UFUNCTION(BlueprintPure)
-	bool IsAlive() const;
+	float GetHealth() const { return Health; }
+
+	UFUNCTION(BlueprintPure)
+	float GetHealthMax() const { return HealthMax; }
+
+	UFUNCTION(BlueprintPure)
+	bool IsAlive() const { return Health > 0.0f; }
+
+	UFUNCTION(BlueprintPure)
+	bool HasFullHealth() const { return Health >= HealthMax; }
 
 	UPROPERTY(BlueprintAssignable)
 	FAROnAttributeChangedSignature OnHealthChangedDelegate;

@@ -1,6 +1,7 @@
 #include "AI/ARAICharacter.h"
 
 #include "AIController.h"
+#include "BrainComponent.h"
 #include "DrawDebugHelpers.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Perception/PawnSensingComponent.h"
@@ -10,6 +11,7 @@ AARAICharacter::AARAICharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	PawnSensingComponent = CreateDefaultSubobject<UPawnSensingComponent>("PawnSensingComponent");
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 }
 
 void AARAICharacter::PostInitializeComponents()
@@ -29,4 +31,16 @@ void AARAICharacter::OnPawnSeen(APawn* InPawn)
 
 		DrawDebugString(GetWorld(), GetActorLocation(), "PLAYER SPOTTED", nullptr, FColor::Red, 4.0f, true);
 	}
+}
+
+void AARAICharacter::OnCharacterDied()
+{
+	if (AAIController* AIController = GetController<AAIController>())
+	{
+		AIController->GetBrainComponent()->StopLogic("Character Died");
+	}
+
+	GetMesh()->SetCollisionProfileName("Ragdoll");
+	GetMesh()->SetAllBodiesSimulatePhysics(true);
+	SetLifeSpan(FMath::RandRange(8.0f, 12.0f));
 }

@@ -1,13 +1,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "Character/ARCharacterBase.h"
 #include "ARAICharacter.generated.h"
 
 class UPawnSensingComponent;
 
 UCLASS()
-class ACTIONROUGELIKE_API AARAICharacter : public ACharacter
+class ACTIONROUGELIKE_API AARAICharacter : public AARCharacterBase
 {
 	GENERATED_BODY()
 
@@ -23,4 +23,6 @@ public:
 protected:
 	UFUNCTION()
 	void OnPawnSeen(APawn* InPawn);
+
+	virtual void OnCharacterDied() override;
 };

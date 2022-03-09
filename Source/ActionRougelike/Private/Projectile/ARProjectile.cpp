@@ -1,5 +1,6 @@
 #include "Projectile/ARProjectile.h"
 
+#include "Components/AudioComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -17,6 +18,9 @@ AARProjectile::AARProjectile()
 
 	EffectComponent = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("EffectComponent"));
 	EffectComponent->SetupAttachment(SphereComponent);
+
+	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
+	AudioComponent->SetupAttachment(RootComponent);
 
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
 	ProjectileMovementComponent->InitialSpeed = 1000.0f;
@@ -42,6 +46,7 @@ void AARProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 		{
 			AttributeComponent->ApplyHealthChange(-DamageValue);
 
+			Explode();
 			Destroy();
 		}
 	}
