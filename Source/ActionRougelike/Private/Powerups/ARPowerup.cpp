@@ -39,8 +39,16 @@ void AARPowerup::DespawnPowerup()
 
 void AARPowerup::Interact_Implementation(APawn* InstigatorPawn)
 {
-	DespawnPowerup();
-	GetWorldTimerManager().SetTimer(TimerHandle_SpawnPowerup, this, &ThisClass::SpawnPowerup, RespawnTime, false);
+	if(CanInteract(InstigatorPawn))
+	{
+		DespawnPowerup();
+		GetWorldTimerManager().SetTimer(TimerHandle_SpawnPowerup, this, &ThisClass::SpawnPowerup, RespawnTime, false);
 
-	ApplyPowerupEffects(InstigatorPawn);
+		ApplyPowerupEffects(InstigatorPawn);
+	}
+}
+
+bool AARPowerup::CanInteract_Implementation(const APawn* const InstigatorPawn) const
+{
+	return true;
 }

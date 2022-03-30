@@ -12,8 +12,9 @@ public class ActionRougelike : ModuleRules
 			"Core", 
 			"CoreUObject", 
 			"Engine", 
+			"GameplayTags",
 			"GameplayTasks",
-			"InputCore" 
+			"InputCore",
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

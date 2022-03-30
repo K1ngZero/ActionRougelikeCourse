@@ -27,7 +27,10 @@ protected:
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Attributes")
-	bool ApplyHealthChange(float Delta);
+	bool ApplyHealthChange(AActor* InstigatorActor, float Delta);
+
+	UFUNCTION(BlueprintCallable, Category = "Attributes")
+	bool Kill(AActor* InstigatorActor);
 
 	UFUNCTION(BlueprintPure)
 	float GetHealth() const { return Health; }
@@ -40,6 +43,12 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	bool HasFullHealth() const { return Health >= HealthMax; }
+
+	UFUNCTION(BlueprintCallable)
+	static UARAttributeComponent* GetAttributes(AActor* FromActor);
+	
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "IsAlive"))
+	static bool IsActorAlive(AActor* InActor);
 
 	UPROPERTY(BlueprintAssignable)
 	FAROnAttributeChangedSignature OnHealthChangedDelegate;

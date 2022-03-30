@@ -4,6 +4,8 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Character.h"
 
+#include "Attributes/ARAttributeComponent.h"
+
 EBTNodeResult::Type UARBTTask_RangedAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
 	AAIController* MyController = OwnerComp.GetAIOwner();
@@ -14,9 +16,16 @@ EBTNodeResult::Type UARBTTask_RangedAttack::ExecuteTask(UBehaviorTreeComponent& 
 		{
 			if (AActor* TargetActor = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("TargetActor")))
 			{
+				if(!UARAttributeComponent::IsActorAlive(TargetActor))
+				{
+					return EBTNodeResult::Failed;
+				}
+
 				const FVector MuzzleLocation = MyPawn->GetMesh()->GetSocketLocation("Muzzle_01");
 				const FVector Direction = TargetActor->GetActorLocation() - MuzzleLocation;
-				const FRotator MuzzleRotation = Direction.Rotation();
+				FRotator MuzzleRotation = Direction.Rotation();
+				MuzzleRotation.Pitch += FMath::RandRange(0.0f, MaxBulletSpread);
+				MuzzleRotation.Yaw += FMath::RandRange(-MaxBulletSpread, MaxBulletSpread);
 
 				FActorSpawnParameters SpawnParams;
 				SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;

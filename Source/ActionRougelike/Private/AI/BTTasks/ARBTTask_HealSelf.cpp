@@ -11,9 +11,9 @@ EBTNodeResult::Type UARBTTask_HealSelf::ExecuteTask(UBehaviorTreeComponent& Owne
 	{
 		if (APawn* MyPawn = AIController->GetPawn())
 		{
-			if (UARAttributeComponent* MyAttributeComponent = Cast<UARAttributeComponent>(MyPawn->GetComponentByClass(UARAttributeComponent::StaticClass())))
+			if (UARAttributeComponent* MyAttributeComponent = UARAttributeComponent::GetAttributes(MyPawn))
 			{
-				MyAttributeComponent->ApplyHealthChange(MyAttributeComponent->GetHealthMax());
+				MyAttributeComponent->ApplyHealthChange(MyPawn, MyAttributeComponent->GetHealthMax());
 				return EBTNodeResult::Succeeded;
 			}
 		}

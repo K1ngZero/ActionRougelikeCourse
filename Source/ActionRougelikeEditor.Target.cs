@@ -9,6 +9,17 @@ public class ActionRougelikeEditorTarget : TargetRules
 	{
 		Type = TargetType.Editor;
 		DefaultBuildSettings = BuildSettingsVersion.V2;
-		ExtraModuleNames.AddRange( new string[] { "ActionRougelike" } );
-	}
+		ExtraModuleNames.AddRange( 
+            new string[] {
+                "ActionRougelike" 
+            });
+
+        if (Type == TargetType.Editor)
+        {
+            ExtraModuleNames.AddRange(
+                    new string[] {
+                        "ActionRougelikeEditor"
+                    });
+        }
+    }
 }

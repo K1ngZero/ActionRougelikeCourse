@@ -4,7 +4,10 @@
 #include "BrainComponent.h"
 #include "DrawDebugHelpers.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Perception/PawnSensingComponent.h"
+
+#include "UserInterface/ARWorldUserWidget.h"
 
 AARAICharacter::AARAICharacter()
 {
@@ -12,6 +15,9 @@ AARAICharacter::AARAICharacter()
 
 	PawnSensingComponent = CreateDefaultSubobject<UPawnSensingComponent>("PawnSensingComponent");
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
+	GetMesh()->SetGenerateOverlapEvents(true);
 }
 
 void AARAICharacter::PostInitializeComponents()
@@ -23,14 +29,38 @@ void AARAICharacter::PostInitializeComponents()
 
 void AARAICharacter::OnPawnSeen(APawn* InPawn)
 {
+	SetTargetActor(InPawn);
+}
+
+void AARAICharacter::SetTargetActor(AActor* NewTarget)
+{
 	if (AAIController* AIController = GetController<AAIController>())
 	{
-		UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent();
-
-		BlackboardComponent->SetValueAsObject("TargetActor", InPawn);
-
-		DrawDebugString(GetWorld(), GetActorLocation(), "PLAYER SPOTTED", nullptr, FColor::Red, 4.0f, true);
+		AIController->GetBlackboardComponent()->SetValueAsObject("TargetActor", NewTarget);
 	}
+}
+
+void AARAICharacter::OnHealthChanged(AActor* InstigatorActor, UARAttributeComponent* OwningComponent, float InNewHealth, float InOldHealth)
+{
+	if (InstigatorActor != this)
+	{
+		SetTargetActor(InstigatorActor);
+	}
+
+	if (InNewHealth < InOldHealth)
+	{
+		if (!HealthBarWidget && HealthBarWidgetClass)
+		{
+			HealthBarWidget = CreateWidget<UARWorldUserWidget>(GetWorld(), HealthBarWidgetClass);
+			if (HealthBarWidget)
+			{
+				HealthBarWidget->SetupWidget(this);
+				HealthBarWidget->AddToViewport();
+			}
+		}
+	}
+
+	Super::OnHealthChanged(InstigatorActor, OwningComponent, InNewHealth, InOldHealth);
 }
 
 void AARAICharacter::OnCharacterDied()
@@ -42,5 +72,5 @@ void AARAICharacter::OnCharacterDied()
 
 	GetMesh()->SetCollisionProfileName("Ragdoll");
 	GetMesh()->SetAllBodiesSimulatePhysics(true);
-	SetLifeSpan(FMath::RandRange(8.0f, 12.0f));
+	Super::OnCharacterDied();
 }

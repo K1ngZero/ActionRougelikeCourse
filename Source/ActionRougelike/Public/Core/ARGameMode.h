@@ -11,16 +11,33 @@ class UCurveFloat;
 class UEnvQuery;
 class UEnvQueryInstanceBlueprintWrapper;
 
+class AARPowerup;
+
 UCLASS()
 class ACTIONROUGELIKE_API AARGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
 	
 public:
-	AARGameMode();
-
 	virtual void StartPlay() override;
 
+// powerups
+protected:
+	void SpawnPowerups();
+
+	UFUNCTION()
+	void OnSpawnPowerupsQueryCompleted(UEnvQueryInstanceBlueprintWrapper* InQueryInstance, EEnvQueryStatus::Type InQueryStatus);
+
+	UPROPERTY(Transient, EditDefaultsOnly, Category = "Powerups")
+	UEnvQuery* SpawnPowerupsQuery = nullptr;
+
+	UPROPERTY(Transient, EditDefaultsOnly, Category = "Powerups")
+	TArray<TSubclassOf<AARPowerup>> PowerupsToSpawn; 
+
+	UPROPERTY(EditDefaultsOnly, Category = "Powerups")
+	int32 MaxPowerupsToSpawn = 20;
+
+// bots spawning
 protected:
 	UFUNCTION()
 	void SpawnBotsTimerElapsed();
@@ -43,4 +60,14 @@ protected:
 	UCurveFloat* DifficultyCurve = nullptr;
 
 	FTimerHandle TimerHandle_SpawnBots;
+
+public:
+	virtual void OnActorKilled(AActor* InVictimActor, AActor* InKiller);
+
+protected:
+	virtual void RestartPlayer(AController* InController) override;
+
+public:
+	UFUNCTION(Exec)
+	void KillAll();
 };

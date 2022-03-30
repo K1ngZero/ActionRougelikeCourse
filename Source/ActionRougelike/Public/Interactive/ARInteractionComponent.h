@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "ARInteractionComponent.generated.h"
 
+class UARWorldUserWidget;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ACTIONROUGELIKE_API UARInteractionComponent : public UActorComponent
@@ -14,12 +15,32 @@ class ACTIONROUGELIKE_API UARInteractionComponent : public UActorComponent
 
 public:	
 	UARInteractionComponent();
+	
+	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
-	virtual void BeginPlay() override;
+	void FindBestInteractable();
 
-public:	
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	void UpdateInteractionWidget();
 
+	UPROPERTY(Transient)
+	TWeakObjectPtr<AActor> FocusedInteractable = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<UARWorldUserWidget> DefaultWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Trace")
+	float InteractionTraceRange = 500.0f;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Trace")
+	float InteractionTraceRadius = 30.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Trace")
+	TEnumAsByte<ECollisionChannel> InteractionCollisionChannel = ECC_WorldDynamic;
+
+	UPROPERTY()
+	UARWorldUserWidget* DefaultWidgetInstance;
+
+public:
 	void PrimaryInteract();
 };

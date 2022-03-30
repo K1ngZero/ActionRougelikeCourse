@@ -5,6 +5,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
 
+#include "ActionSystem/ARActionComponent.h"
+#include "Attributes/ARAttributeComponent.h"
 #include "Interactive/ARInteractionComponent.h"
 #include "Projectile/ARProjectile.h"
 
@@ -36,6 +38,9 @@ void AARCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAxis(FName("TurnX"), this, &ACharacter::AddControllerYawInput);
 	PlayerInputComponent->BindAxis(FName("TurnY"), this, &ThisClass::AddControllerPitchInput);
 
+	PlayerInputComponent->BindAction(FName("Sprint"), IE_Pressed, this, &ThisClass::SprintStart);
+	PlayerInputComponent->BindAction(FName("Sprint"), IE_Released, this, &ThisClass::SprintStop);
+
 	PlayerInputComponent->BindAction(FName("PrimaryAttack"), IE_Pressed, this, &ThisClass::PrimaryAttack);
 	PlayerInputComponent->BindAction(FName("SecondaryAttack"), IE_Pressed, this, &ThisClass::SecondaryAttack);
 	PlayerInputComponent->BindAction(FName("DashAttack"), IE_Pressed, this, &ThisClass::Dash);
@@ -46,8 +51,13 @@ void AARCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 
 void AARCharacter::GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const
 {
-	OutLocation = CameraComponent->GetComponentLocation();
+	OutLocation = GetPawnViewLocation();
 	OutRotation = CameraComponent->GetComponentRotation();
+}
+
+FVector AARCharacter::GetPawnViewLocation() const
+{
+	return CameraComponent->GetComponentLocation();
 }
 
 void AARCharacter::MoveForward(float InAxis)
@@ -70,49 +80,29 @@ void AARCharacter::MoveRight(float InAxis)
 	AddMovementInput(RightVector, InAxis);
 }
 
-void AARCharacter::PrimaryAttack()
+void AARCharacter::SprintStart()
 {
-	if (!TimerHandle_PrimaryAttack.IsValid())
-	{
-		PlayAnimMontage(AttackAnimation);
-		GetWorldTimerManager().SetTimer(TimerHandle_PrimaryAttack, this, &ThisClass::PrimaryAttack_TimeElapsed, 0.2f);
-	}
+	ActionComponent->StartActionByName(this, "Sprint");
 }
 
-void AARCharacter::PrimaryAttack_TimeElapsed()
+void AARCharacter::SprintStop()
 {
-	TimerHandle_PrimaryAttack.Invalidate();
-	SpawnProjectile(PrimaryAttackProjectileClass);
+	ActionComponent->StopActionByName(this, "Sprint");
+}
+
+void AARCharacter::PrimaryAttack()
+{
+	ActionComponent->StartActionByName(this, "PrimaryAttack");
 }
 
 void AARCharacter::SecondaryAttack()
 {
-	if (!TimerHandle_SecondaryAttack.IsValid())
-	{
-		PlayAnimMontage(AttackAnimation);
-		GetWorldTimerManager().SetTimer(TimerHandle_SecondaryAttack, this, &ThisClass::SecondaryAttack_TimeElapsed, 0.2f);
-	}
-}
-
-void AARCharacter::SecondaryAttack_TimeElapsed()
-{
-	TimerHandle_SecondaryAttack.Invalidate();
-	SpawnProjectile(SecondaryAttackProjectileClass);
+	ActionComponent->StartActionByName(this, "SecondaryAttack");
 }
 
 void AARCharacter::Dash()
 {
-	if (!TimerHandle_DashAttack.IsValid())
-	{
-		PlayAnimMontage(AttackAnimation);
-		GetWorldTimerManager().SetTimer(TimerHandle_DashAttack, this, &ThisClass::Dash_TimeElapsed, 0.2f);
-	}
-}
-
-void AARCharacter::Dash_TimeElapsed()
-{
-	TimerHandle_DashAttack.Invalidate();
-	SpawnProjectile(DashProjectileClass);
+	ActionComponent->StartActionByName(this, "Dash");
 }
 
 void AARCharacter::PrimaryInteract()
@@ -120,45 +110,13 @@ void AARCharacter::PrimaryInteract()
 	InteractionComponent->PrimaryInteract();
 }
 
-void AARCharacter::SpawnProjectile(TSubclassOf<AARProjectile> InProjectileClass)
-{
-	if (!ensureAlways(InProjectileClass))
-	{
-		return;
-	}
-
-	const FCollisionShape TraceShape(FCollisionShape::MakeSphere(20.0f));
-	const FCollisionQueryParams TraceCollisionParams(FName("CharacterSpawnProjectile"), false, this);
-	const FCollisionObjectQueryParams TraceObjectParams(ECC_TO_BITFIELD(ECC_WorldDynamic) | ECC_TO_BITFIELD(ECC_WorldStatic) | ECC_TO_BITFIELD(ECC_Pawn));
-
-	const FVector HandLocation = GetMesh()->GetSocketLocation(FName("Muzzle_01"));
-	const FVector TraceStart = CameraComponent->GetComponentLocation();
-	FVector TraceEnd = TraceStart + CameraComponent->GetForwardVector() * 100000.0f;
-
-	FHitResult OutResult;
-	if (GetWorld()->SweepSingleByObjectType(OutResult, TraceStart, TraceEnd, FQuat::Identity, TraceObjectParams, TraceShape, TraceCollisionParams))
-	{
-		TraceEnd = OutResult.Location;
-	}
-
-	const FRotator ProjectileRotation = FRotationMatrix::MakeFromX(TraceEnd - HandLocation).Rotator();
-	const FTransform ProjectileSpawnTransform = FTransform(ProjectileRotation, HandLocation);
-
-	FActorSpawnParameters SpawnParameters;
-	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-	SpawnParameters.Instigator = this;
-	SpawnParameters.Owner = GetController();
-
-	if (AARProjectile* SpawnedProjectile = GetWorld()->SpawnActor<AARProjectile>(InProjectileClass, ProjectileSpawnTransform, SpawnParameters))
-	{
-		if (SpawnedProjectile->GetSpawnVFX())
-		{
-			UGameplayStatics::SpawnEmitterAttached(SpawnedProjectile->GetSpawnVFX(), GetMesh(), FName("Muzzle_01"), HandLocation, ProjectileRotation);
-		}
-	}
-}
-
 void AARCharacter::OnCharacterDied()
 {
 	DisableInput(GetController<APlayerController>());
+	Super::OnCharacterDied();
+}
+
+void AARCharacter::HealSelf(float Amount /*= 100.0f*/)
+{
+	AttributeComponent->ApplyHealthChange(this, Amount);
 }

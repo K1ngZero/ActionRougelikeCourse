@@ -6,7 +6,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 
+#include "ActionSystem/ARAction.h"
+#include "ActionSystem/ARActionComponent.h"
 #include "Attributes/ARAttributeComponent.h"
+#include "Utilities/ARGameplayFunctionLibrary.h"
 
 AARProjectile::AARProjectile()
 {
@@ -42,12 +45,33 @@ void AARProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 {
 	if (OtherActor && OtherActor != GetInstigator())
 	{
-		if (UARAttributeComponent* AttributeComponent = Cast<UARAttributeComponent>(OtherActor->GetComponentByClass(UARAttributeComponent::StaticClass())))
-		{
-			AttributeComponent->ApplyHealthChange(-DamageValue);
+		bool bParried = false;
+		
+		UARActionComponent* TargetActionComponent = Cast<UARActionComponent>(OtherActor->GetComponentByClass(UARActionComponent::StaticClass()));
 
-			Explode();
-			Destroy();
+		if (TargetActionComponent)
+		{
+			if (TargetActionComponent->ActiveGameplayTags.HasTag(ParryTag))
+			{
+				ProjectileMovementComponent->Velocity = -ProjectileMovementComponent->Velocity;
+
+				SetInstigator(OtherActor->GetInstigator());
+				bParried = true;
+			}
+		}
+
+		if (!bParried)
+		{
+			if (UARGameplayFunctionLibrary::ApplyDirectionalDamage(OtherActor, GetInstigator(), DamageValue, SweepResult))
+			{
+				if (TargetActionComponent && ActionOnHitClass)
+				{
+					TargetActionComponent->AddAction(OtherActor, ActionOnHitClass);
+				}
+
+				Explode();
+				Destroy();
+			}
 		}
 	}
 }

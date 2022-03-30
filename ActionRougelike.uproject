@@ -10,7 +10,16 @@
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
 				"Engine",
-				"AIModule"
+				"AIModule",
+				"UMG"
+			]
+		},
+		{
+			"Name": "ActionRougelikeEditor",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit",
+			"AdditionalDependencies": [
+				"BlueprintGraph"
 			]
 		}
 	]

@@ -41,6 +41,9 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void ApplyPowerupEffects(APawn* InstigatorPawn);
 
+	UFUNCTION(BlueprintNativeEvent)
+	bool CanInteract(const APawn* const InstigatorPawn) const;
+
 	UPROPERTY(EditDefaultsOnly)
 	float SpawnTime = 5.0f;
 

@@ -14,7 +14,7 @@ void UARBTService_CheckHealthValue::TickNode(UBehaviorTreeComponent& OwnerComp, 
 	{
 		if (APawn* MyPawn = MyController->GetPawn())
 		{
-			if (UARAttributeComponent* MyAttributeComponent = Cast<UARAttributeComponent>(MyPawn->GetComponentByClass(UARAttributeComponent::StaticClass())))
+			if (UARAttributeComponent* MyAttributeComponent = UARAttributeComponent::GetAttributes(MyPawn))
 			{
 				if (UBlackboardComponent* BlackboardComponent = OwnerComp.GetBlackboardComponent())
 				{

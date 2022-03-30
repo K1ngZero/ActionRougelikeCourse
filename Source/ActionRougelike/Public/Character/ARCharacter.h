@@ -7,10 +7,8 @@
 #include "ARCharacter.generated.h"
 
 class UCameraComponent;
-class UAnimMontage;
 class USpringArmComponent;
 
-class AARProjectile;
 class UARInteractionComponent;
 
 UCLASS()
@@ -35,44 +33,28 @@ public:
 
 	virtual void GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const override;
 
+	virtual FVector GetPawnViewLocation() const override;
+
 protected:
 	void MoveForward(float InAxis);
 
 	void MoveRight(float InAxis);
 
-	void PrimaryAttack();
+	void SprintStart();
 
-	void PrimaryAttack_TimeElapsed();
+	void SprintStop();
+
+	void PrimaryAttack();
 
 	void SecondaryAttack();
 
-	void SecondaryAttack_TimeElapsed();
-
 	void Dash();
-
-	void Dash_TimeElapsed();
 
 	void PrimaryInteract();
 
-	void SpawnProjectile(TSubclassOf<AARProjectile> InProjectileClass);
-
 	virtual void OnCharacterDied() override;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Attack")
-	TSubclassOf<AARProjectile> PrimaryAttackProjectileClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Attack")
-	TSubclassOf<AARProjectile> SecondaryAttackProjectileClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Attack")
-	TSubclassOf<AARProjectile> DashProjectileClass;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Attack")
-	UAnimMontage* AttackAnimation;
-
-	FTimerHandle TimerHandle_PrimaryAttack;
-
-	FTimerHandle TimerHandle_SecondaryAttack;
-
-	FTimerHandle TimerHandle_DashAttack;
+public:
+	UFUNCTION(Exec)
+	void HealSelf(float Amount = 100.0f);
 };
