@@ -46,6 +46,12 @@ void UARActionComponent::AddAction(AActor* InInstigator, TSubclassOf<UARAction> 
 		return;
 	}
 
+	if (!GetOwner()->HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Client attempting to AddAction. [Class: %s]"), *GetNameSafe(ActionClass));
+		return;
+	}
+
 	if (UARAction* NewAction = NewObject<UARAction>(GetOwner(), ActionClass))
 	{
 		Actions.Add(NewAction);
@@ -64,7 +70,7 @@ void UARActionComponent::RemoveAction(UARAction* InAction)
 	Actions.Remove(InAction);
 }
 
-void UARActionComponent::StartActionByName(AActor* InInstigator, const FName& ActionName)
+bool UARActionComponent::StartActionByName(AActor* InInstigator, const FName& ActionName)
 {
 	for (UARAction* Action : Actions)
 	{
@@ -83,31 +89,43 @@ void UARActionComponent::StartActionByName(AActor* InInstigator, const FName& Ac
 			}
 
 			Action->StartAction(InInstigator);
+			return true;
 		}
 	}
+	
+	return false;
 }
 
-void UARActionComponent::StopActionByName(AActor* InInstigator, const FName& ActionName)
+bool UARActionComponent::StopActionByName(AActor* InInstigator, const FName& ActionName)
 {
 	for (UARAction* Action : Actions)
 	{
 		if (Action && Action->ActionName == ActionName)
 		{
-			if (!Action->IsRunning())
+			if (Action->IsRunning())
 			{
-				const FString FailedMessage = FString::Printf(TEXT("Failed to stop: %s"), *ActionName.ToString());
-				GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FailedMessage);
-				continue;
-			}
+				if (!GetOwner()->HasAuthority())
+				{
+					ServerStopAction(InInstigator, ActionName);
+				}
 
-			Action->StopAction(InInstigator);
+				Action->StopAction(InInstigator);
+				return true;
+			}
 		}
 	}
+
+	return false;
 }
 
 void UARActionComponent::ServerStartAction_Implementation(AActor* Instigator, const FName& ActionName)
 {
 	StartActionByName(Instigator, ActionName);
+}
+
+void UARActionComponent::ServerStopAction_Implementation(AActor* Instigator, const FName& ActionName)
+{
+	StopActionByName(Instigator, ActionName);
 }
 
 bool UARActionComponent::ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags)

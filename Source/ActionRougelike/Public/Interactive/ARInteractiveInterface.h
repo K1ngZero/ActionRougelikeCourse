@@ -18,3 +18,18 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void Interact(APawn* InstigatorPawn);
 };
+
+UINTERFACE(MinimalAPI)
+class UARGameplayInterface : public UInterface
+{
+	GENERATED_BODY()
+};
+
+class ACTIONROUGELIKE_API IARGameplayInterface
+{
+	GENERATED_BODY()
+
+public:
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void SaveGameData();
+};

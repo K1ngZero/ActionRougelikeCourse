@@ -29,10 +29,10 @@ public:
 	void RemoveAction(UARAction* InAction);
 
 	UFUNCTION(BlueprintCallable, Category = "Actions")
-	void StartActionByName(AActor* InInstigator, const FName& ActionName);
+	bool StartActionByName(AActor* InInstigator, const FName& ActionName);
 
 	UFUNCTION(BlueprintCallable, Category = "Actions")
-	void StopActionByName(AActor* InInstigator, const FName& ActionName);
+	bool StopActionByName(AActor* InInstigator, const FName& ActionName);
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Tags")
 	FGameplayTagContainer ActiveGameplayTags;
@@ -40,6 +40,9 @@ public:
 protected:
 	UFUNCTION(Server, Reliable)
 	void ServerStartAction(AActor* Instigator, const FName& ActionName);
+
+	UFUNCTION(Server, Reliable)
+	void ServerStopAction(AActor* Instigator, const FName& ActionName);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Actions")
 	TArray<TSubclassOf<UARAction>> DefaultActions;

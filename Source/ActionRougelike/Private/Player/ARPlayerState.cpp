@@ -2,6 +2,8 @@
 
 #include "Net/UnrealNetwork.h"
 
+#include "SaveSystem/ARSaveGame.h"
+
 void AARPlayerState::AddCoins(int32 InCoins)
 {
 	const int32 CoinsToAdd = FMath::Max(0, InCoins);
@@ -36,6 +38,26 @@ void AARPlayerState::SetCoins(int32 InCoins)
 void AARPlayerState::OnRep_Coins(int32 OldCoins)
 {
 	OnCoinsChangedDelegate.Broadcast(this, Coins, OldCoins);
+}
+
+void AARPlayerState::LoadGameData(UARSaveGame* SaveGame)
+{
+	if (!ensureMsgf(SaveGame, TEXT("Couldn't save %s. SaveGame is nullptr!"), *GetNameSafe(this)))
+	{
+		return;
+	}
+
+	Coins = SaveGame->Coins;
+}
+
+void AARPlayerState::SaveGameData(UARSaveGame* SaveGame)
+{
+	if (!ensureMsgf(SaveGame, TEXT("Couldn't save %s. SaveGame is nullptr!"), *GetNameSafe(this)))
+	{
+		return;
+	}
+
+	SaveGame->Coins = Coins;
 }
 
 void AARPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

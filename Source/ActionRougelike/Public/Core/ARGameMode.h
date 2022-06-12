@@ -12,6 +12,7 @@ class UEnvQuery;
 class UEnvQueryInstanceBlueprintWrapper;
 
 class AARPowerup;
+class UARSaveGame;
 
 UCLASS()
 class ACTIONROUGELIKE_API AARGameMode : public AGameModeBase
@@ -19,9 +20,13 @@ class ACTIONROUGELIKE_API AARGameMode : public AGameModeBase
 	GENERATED_BODY()
 	
 public:
+	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
+
 	virtual void StartPlay() override;
 
-// powerups
+	virtual void HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer) override;
+
+	// powerups
 protected:
 	void SpawnPowerups();
 
@@ -73,4 +78,18 @@ public:
 
 	UFUNCTION(Exec)
 	void SetHealth(float InHealth = 100.0f);
+
+// saving
+public:
+	UFUNCTION(BlueprintCallable, Category = "SaveGame")
+	void WriteSaveGame();
+
+	void LoadSaveGame();
+
+protected:
+	UPROPERTY()
+	FString SaveSlotName = FString(TEXT("SaveGame01"));
+
+	UPROPERTY()
+	UARSaveGame* CurrentSaveGame;
 };

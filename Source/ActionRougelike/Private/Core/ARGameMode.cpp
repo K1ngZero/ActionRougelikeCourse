@@ -2,16 +2,20 @@
 
 #include "DrawDebugHelpers.h"
 #include "EngineUtils.h"
+#include "Components/PrimitiveComponent.h"
 #include "EnvironmentQuery/EnvQueryManager.h"
 #include "EnvironmentQuery/EnvQueryTypes.h"
+#include "GameFramework/GameStateBase.h"
+#include "Kismet/GameplayStatics.h"
 
 #include "AI/ARAICharacter.h"
 #include "Attributes/ARAttributeComponent.h"
 #include "Character/ARCharacter.h"
 #include "Player/ARPlayerState.h"
 #include "Powerups/ARPowerup.h"
+#include "SaveSystem/ARSaveGame.h"
 #include "Utilities/ARGameplayFunctionLibrary.h"
-#include "Kismet/GameplayStatics.h"
+#include "Interactive/ARInteractiveInterface.h"
 
 namespace ARGameModeCVars
 {
@@ -22,12 +26,29 @@ namespace ARGameModeCVars
 		ECVF_Cheat);
 }
 
+void AARGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
+{
+	Super::InitGame(MapName, Options, ErrorMessage);
+
+	LoadSaveGame();
+}
+
 void AARGameMode::StartPlay()
 {
 	Super::StartPlay();
 
 	SpawnPowerups();
 	GetWorldTimerManager().SetTimer(TimerHandle_SpawnBots, this, &ThisClass::SpawnBotsTimerElapsed, SpawnTimerInterval, true);
+}
+
+void AARGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
+{
+	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
+
+	if (AARPlayerState* PlayerState = NewPlayer->GetPlayerState<AARPlayerState>())
+	{
+		PlayerState->LoadGameData(CurrentSaveGame);
+	}
 }
 
 void AARGameMode::SpawnPowerups()
@@ -177,4 +198,85 @@ void AARGameMode::SetHealth(float InHealth /*= 100.0f*/)
 
 	Attributes->SetMaxHealth(Pawn, InHealth);
 	Attributes->SetHealth(Pawn, InHealth);
+}
+
+void AARGameMode::WriteSaveGame()
+{
+	if (!ensureMsgf(CurrentSaveGame, TEXT("Couldn't save game, Save Game object is nullptr")))
+	{
+		return;
+	}
+
+	for (int32 i = 0; i < GameState->PlayerArray.Num(); i++)
+	{
+		if (AARPlayerState* PlayerState = Cast<AARPlayerState>(GameState->PlayerArray[i]))
+		{
+			PlayerState->SaveGameData(CurrentSaveGame);
+			break; // TODO: Multiplayer
+		}
+	}
+
+	CurrentSaveGame->SavedActors.Empty();
+
+	for (FActorIterator It(GetWorld()); It; ++It)
+	{
+		AActor* Actor = *It;
+
+		if (!Actor->Implements<UARGameplayInterface>())
+		{
+			continue;
+		}
+
+		FActorSaveData ActorData;
+		ActorData.ActorName = Actor->GetName();
+		ActorData.ActorTransform = Actor->GetActorTransform();
+		ActorData.Velocity = Actor->GetVelocity();
+
+		CurrentSaveGame->SavedActors.Add(ActorData);
+	}
+
+	UGameplayStatics::SaveGameToSlot(CurrentSaveGame, SaveSlotName, 0);
+}
+
+void AARGameMode::LoadSaveGame()
+{
+	if (UGameplayStatics::DoesSaveGameExist(SaveSlotName, 0))
+	{
+		CurrentSaveGame = Cast<UARSaveGame>(UGameplayStatics::LoadGameFromSlot(SaveSlotName, 0));
+
+		if (CurrentSaveGame == nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed to load SaveGame data"));
+			return;
+		}
+
+		for (FActorIterator It(GetWorld()); It; ++It)
+		{
+			AActor* Actor = *It;
+
+			if (!Actor->Implements<UARGameplayInterface>())
+			{
+				continue;
+			}
+
+			for (FActorSaveData& ActorData : CurrentSaveGame->SavedActors)
+			{
+				if (ActorData.ActorName.Equals(Actor->GetName()))
+				{
+					Actor->SetActorTransform(ActorData.ActorTransform);
+					if(UPrimitiveComponent* PrimitiveComponent = Cast<UPrimitiveComponent>(Actor->GetRootComponent()))
+					{
+						PrimitiveComponent->AddImpulse(ActorData.Velocity, NAME_None, true);
+					}
+					break;
+				}
+			}
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("Loaded SaveGame data"));
+	}
+	else
+	{
+		CurrentSaveGame = Cast<UARSaveGame>(UGameplayStatics::CreateSaveGameObject(UARSaveGame::StaticClass()));
+	}
 }

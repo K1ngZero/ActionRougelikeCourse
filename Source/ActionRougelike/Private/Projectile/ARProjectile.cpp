@@ -66,7 +66,7 @@ void AARProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 		{
 			if (UARGameplayFunctionLibrary::ApplyDirectionalDamage(OtherActor, GetInstigator(), DamageValue, SweepResult))
 			{
-				if (TargetActionComponent && ActionOnHitClass)
+				if (TargetActionComponent && ActionOnHitClass && HasAuthority())
 				{
 					TargetActionComponent->AddAction(GetInstigator(), ActionOnHitClass);
 				}

@@ -4,6 +4,8 @@
 #include "GameFramework/PlayerState.h"
 #include "ARPlayerState.generated.h"
 
+class UARSaveGame;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FAROnCoinsChangedSignature, AARPlayerState*, InPlayerState, int32, NewCoins, int32, OldCoins);
 
 UCLASS()
@@ -20,6 +22,9 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	bool CanPay(int32 InCoinsAmount) const { return InCoinsAmount >= 0 && InCoinsAmount <= Coins; }
+
+	void LoadGameData(UARSaveGame* SaveGame);
+	void SaveGameData(UARSaveGame* SaveGame);
 
 	UPROPERTY(BlueprintAssignable)
 	FAROnCoinsChangedSignature OnCoinsChangedDelegate;
