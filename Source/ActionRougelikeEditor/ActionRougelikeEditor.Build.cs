@@ -18,8 +18,10 @@ public class ActionRougelikeEditor : ModuleRules
             "SlateCore",
             "ToolMenus",
             "UMG",
+			"KismetCompiler",
+			"GameplayTasksEditor",
 
-            "ActionRougelike"
+			"ActionRougelike"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {

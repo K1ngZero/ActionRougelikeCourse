@@ -23,13 +23,18 @@ void AARCharacterBase::BeginPlay()
 
 void AARCharacterBase::OnHealthChanged(AActor* InstigatorActor, UARAttributeComponent* OwningComponent, float InNewHealth, float InOldHealth)
 {
-	if (InOldHealth > 0.0f)
+	const float HealthDelta = InNewHealth - InOldHealth;
+	if (InOldHealth > 0.0f && HealthDelta < 0.0f)
 	{
 		GetMesh()->SetScalarParameterValueOnMaterials("TimeToHit", GetWorld()->TimeSeconds);
 
 		if (InNewHealth <= 0.0f)
 		{
 			OnCharacterDied();
+		}
+		else
+		{
+			AttributeComponent->ApplyRageChange(this, -HealthDelta * DamageTakenFractionAsRage);
 		}
 	}
 }

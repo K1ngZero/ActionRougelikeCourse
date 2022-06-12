@@ -1,6 +1,7 @@
 #include "Powerups/ARPowerup.h"
 
 #include "Components/SphereComponent.h"
+#include "Net/UnrealNetwork.h"
 
 AARPowerup::AARPowerup()
 {
@@ -15,26 +16,33 @@ AARPowerup::AARPowerup()
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	SphereComponent->SetupAttachment(MeshComponent);
+
+	SetReplicates(true);
 }
 
 void AARPowerup::BeginPlay()
 {
 	Super::BeginPlay();
 
-	DespawnPowerup();
-	GetWorldTimerManager().SetTimer(TimerHandle_SpawnPowerup, this, &ThisClass::SpawnPowerup, SpawnTime, false);
+	if(HasAuthority())
+	{
+		DespawnPowerup();
+		GetWorldTimerManager().SetTimer(TimerHandle_SpawnPowerup, this, &ThisClass::SpawnPowerup, SpawnTime, false);
+	}
 }
 
 void AARPowerup::SpawnPowerup()
 {
 	MeshComponent->SetScalarParameterValueOnMaterials(FName("bIsSpawned"), 1.0f);
 	SetActorEnableCollision(true);
+	bIsSpawned = true;
 }
 
 void AARPowerup::DespawnPowerup()
 {
 	MeshComponent->SetScalarParameterValueOnMaterials(FName("bIsSpawned"), 0.0f);
 	SetActorEnableCollision(false);
+	bIsSpawned = false;
 }
 
 void AARPowerup::Interact_Implementation(APawn* InstigatorPawn)
@@ -51,4 +59,23 @@ void AARPowerup::Interact_Implementation(APawn* InstigatorPawn)
 bool AARPowerup::CanInteract_Implementation(const APawn* const InstigatorPawn) const
 {
 	return true;
+}
+
+void AARPowerup::OnRep_IsSpawned()
+{
+	if (bIsSpawned)
+	{
+		SpawnPowerup();
+	}
+	else
+	{
+		DespawnPowerup();
+	}
+}
+
+void AARPowerup::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AARPowerup, bIsSpawned);
 }

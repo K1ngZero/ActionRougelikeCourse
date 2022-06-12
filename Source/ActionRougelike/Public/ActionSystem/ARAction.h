@@ -9,12 +9,27 @@
 
 class UARActionComponent;
 
+USTRUCT()
+struct FARActionRepData
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY()
+	bool bIsRunning = false;
+
+	UPROPERTY(Transient)
+	AActor* Instigator = nullptr;
+};
+
 UCLASS(Blueprintable)
 class ACTIONROUGELIKE_API UARAction : public UObject
 {
 	GENERATED_BODY()
 
 public:
+	void Initialize(UARActionComponent* InActionComponent);
+
 	void OnActionAdded(AActor* InInstigator);
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Action")
@@ -27,7 +42,7 @@ public:
 	bool CanStart(AActor* InInstigator) const;
 
 	UFUNCTION(Category = "Action")
-	bool IsRunning() const { return bIsRunning; }
+	bool IsRunning() const;
 
 	/* Action nickname to start/stop without a reference to the object */
 	UPROPERTY(EditDefaultsOnly, Category = "Action")
@@ -35,9 +50,14 @@ public:
 
 	virtual UWorld* GetWorld() const override;
 
+	virtual bool IsSupportedForNetworking() const override { return true; }
+
 protected:
 	UFUNCTION(BlueprintPure, Category = "Action")
-	UARActionComponent* GetOwningComponent() const;
+	UARActionComponent* GetOwningComponent() const { return MyActionComponent; }
+
+	UPROPERTY(Transient, Replicated)
+	UARActionComponent* MyActionComponent;
 
 	/* Tags applied to OwningActor when activated, removed when action stops */
 	UPROPERTY(EditDefaultsOnly, Category = "Tags")
@@ -50,5 +70,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Action")
 	bool bAutoStart = false;
 
-	bool bIsRunning = false;
+	UPROPERTY(ReplicatedUsing = OnRep_RepData)
+	FARActionRepData RepData;
+
+	UFUNCTION()
+	void OnRep_RepData();
+
+	UPROPERTY(BlueprintReadOnly)
+	TWeakObjectPtr<AActor> MyInstigator;
 };

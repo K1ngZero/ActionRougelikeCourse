@@ -18,11 +18,14 @@ void UARAction_ProjectileAttack::StartAction_Implementation(AActor* InInstigator
 		Character->PlayAnimMontage(AttackAnimation);
 		UGameplayStatics::SpawnEmitterAttached(CastingEffect, Character->GetMesh(), ProjectileSocketName, FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::SnapToTarget);
 
-		FTimerHandle TimerHandle_AttackDelay;
-		FTimerDelegate TimerDelegate_Attack;
-		TimerDelegate_Attack.BindUObject(this, &ThisClass::AttackDelay_Elapsed, Character);
+		if(Character->HasAuthority())
+		{
+			FTimerHandle TimerHandle_AttackDelay;
+			FTimerDelegate TimerDelegate_Attack;
+			TimerDelegate_Attack.BindUObject(this, &ThisClass::AttackDelay_Elapsed, Character);
 
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle_AttackDelay, TimerDelegate_Attack, ProjectileAnimDelay, false);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle_AttackDelay, TimerDelegate_Attack, ProjectileAnimDelay, false);
+		}
 	}
 }
 

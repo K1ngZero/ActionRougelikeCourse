@@ -20,8 +20,8 @@ protected:
 
 	void ProjectPositionToPlayerScreen();
 
-	UPROPERTY(BlueprintReadOnly, Category = "UI")
-	TWeakObjectPtr<AActor> AttachedActor;
+	UPROPERTY(BlueprintReadOnly, Category = "UI", meta = (ExposeOnSpawn = "true"))
+	AActor* AttachedActor;
 
 public:
 	void SetupWidget(AActor* InAttachedActor);

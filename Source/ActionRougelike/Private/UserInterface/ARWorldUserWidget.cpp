@@ -8,7 +8,7 @@ void UARWorldUserWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTi
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
-	if (!AttachedActor.IsValid())
+	if (!AttachedActor)
 	{
 		RemoveFromParent();
 		return;

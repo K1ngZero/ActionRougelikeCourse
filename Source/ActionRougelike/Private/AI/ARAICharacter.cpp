@@ -5,6 +5,7 @@
 #include "DrawDebugHelpers.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Perception/PawnSensingComponent.h"
 
 #include "UserInterface/ARWorldUserWidget.h"
@@ -30,6 +31,7 @@ void AARAICharacter::PostInitializeComponents()
 void AARAICharacter::OnPawnSeen(APawn* InPawn)
 {
 	SetTargetActor(InPawn);
+	MulticastOnPawnSeen();
 }
 
 void AARAICharacter::SetTargetActor(AActor* NewTarget)
@@ -37,6 +39,16 @@ void AARAICharacter::SetTargetActor(AActor* NewTarget)
 	if (AAIController* AIController = GetController<AAIController>())
 	{
 		AIController->GetBlackboardComponent()->SetValueAsObject("TargetActor", NewTarget);
+	}
+}
+
+void AARAICharacter::MulticastOnPawnSeen_Implementation()
+{
+	if (!PlayerSpottedWidget && PlayerSpottedWidgetClass)
+	{
+		PlayerSpottedWidget = CreateWidget<UARWorldUserWidget>(UGameplayStatics::GetPlayerController(this, 0), PlayerSpottedWidgetClass);
+		PlayerSpottedWidget->SetupWidget(this);
+		PlayerSpottedWidget->AddToViewport();
 	}
 }
 

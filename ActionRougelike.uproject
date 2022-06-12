@@ -19,7 +19,8 @@
 			"Type": "Editor",
 			"LoadingPhase": "PostEngineInit",
 			"AdditionalDependencies": [
-				"BlueprintGraph"
+				"BlueprintGraph",
+				"UnrealEd"
 			]
 		}
 	]

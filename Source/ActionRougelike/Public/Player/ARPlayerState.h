@@ -27,6 +27,9 @@ public:
 protected:
 	void SetCoins(int32 InCoins);
 
-	UPROPERTY(BlueprintReadOnly)
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_Coins)
 	int32 Coins = 0;
+
+	UFUNCTION()
+	void OnRep_Coins(int32 OldCoins);
 };

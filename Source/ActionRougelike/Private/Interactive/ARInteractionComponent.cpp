@@ -23,8 +23,13 @@ void UARInteractionComponent::TickComponent(float DeltaTime, enum ELevelTick Tic
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	FindBestInteractable();
-	UpdateInteractionWidget();
+	APawn* MyPawn = Cast<APawn>(GetOwner());
+
+	if (MyPawn->IsLocallyControlled())
+	{
+		FindBestInteractable();
+		UpdateInteractionWidget();
+	}
 }
 
 void UARInteractionComponent::FindBestInteractable()
@@ -106,7 +111,12 @@ void UARInteractionComponent::PrimaryInteract()
 {
 	if (FocusedInteractable.IsValid())
 	{
-		APawn* MyPawn = Cast<APawn>(GetOwner());
-		IARInteractiveInterface::Execute_Interact(FocusedInteractable.Get(), MyPawn);
+		Server_PrimaryInteract(FocusedInteractable.Get());
 	}
+}
+
+void UARInteractionComponent::Server_PrimaryInteract_Implementation(AActor* FocusedActor)
+{
+	APawn* MyPawn = Cast<APawn>(GetOwner());
+	IARInteractiveInterface::Execute_Interact(FocusedActor, MyPawn);
 }

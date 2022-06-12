@@ -28,6 +28,9 @@ protected:
 
 	void SetTargetActor(AActor* NewTarget);
 
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastOnPawnSeen();
+
 	virtual void OnHealthChanged(AActor* InstigatorActor, UARAttributeComponent* OwningComponent, float InNewHealth, float InOldHealth) override;
 
 	virtual void OnCharacterDied() override;
@@ -37,4 +40,10 @@ protected:
 
 	UPROPERTY()
 	UARWorldUserWidget* HealthBarWidget;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UARWorldUserWidget> PlayerSpottedWidgetClass;
+
+	UPROPERTY()
+	UARWorldUserWidget* PlayerSpottedWidget;
 };

@@ -1,5 +1,7 @@
 #include "Player/ARPlayerState.h"
 
+#include "Net/UnrealNetwork.h"
+
 void AARPlayerState::AddCoins(int32 InCoins)
 {
 	const int32 CoinsToAdd = FMath::Max(0, InCoins);
@@ -23,7 +25,22 @@ bool AARPlayerState::PayCoins(int32 InCoins)
 
 void AARPlayerState::SetCoins(int32 InCoins)
 {
-	const int32 OldCoinsValue = Coins;
-	Coins = InCoins;
-	OnCoinsChangedDelegate.Broadcast(this, Coins, OldCoinsValue);
+	if (Coins != InCoins)
+	{
+		const int32 OldCoins = Coins;
+		Coins = InCoins;
+		OnRep_Coins(OldCoins);
+	}
+}
+
+void AARPlayerState::OnRep_Coins(int32 OldCoins)
+{
+	OnCoinsChangedDelegate.Broadcast(this, Coins, OldCoins);
+}
+
+void AARPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AARPlayerState, Coins);
 }

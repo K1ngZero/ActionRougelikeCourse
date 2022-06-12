@@ -11,6 +11,7 @@
 #include "Player/ARPlayerState.h"
 #include "Powerups/ARPowerup.h"
 #include "Utilities/ARGameplayFunctionLibrary.h"
+#include "Kismet/GameplayStatics.h"
 
 namespace ARGameModeCVars
 {
@@ -167,4 +168,13 @@ void AARGameMode::KillAll()
 			}
 		}
 	}
+}
+
+void AARGameMode::SetHealth(float InHealth /*= 100.0f*/)
+{
+	APawn* Pawn = UGameplayStatics::GetPlayerCharacter(this, 0);
+	UARAttributeComponent* Attributes = UARAttributeComponent::GetAttributes(Pawn);
+
+	Attributes->SetMaxHealth(Pawn, InHealth);
+	Attributes->SetHealth(Pawn, InHealth);
 }

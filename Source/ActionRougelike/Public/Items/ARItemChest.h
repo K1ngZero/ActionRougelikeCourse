@@ -27,13 +27,18 @@ public:
 	AARItemChest();
 
 protected:
-	virtual void BeginPlay() override;
+	UFUNCTION()
+	void OnRep_IsLidOpen();
+	
+	UFUNCTION(BlueprintImplementableEvent)
+	void ToggleLidOpened();
 
 	UPROPERTY(EditDefaultsOnly)
 	float TargetPitchRotation = 110.0f;
 
-public:	
-	virtual void Tick(float DeltaTime) override;
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_IsLidOpen)
+	bool bIsLidOpen = false;
 
+public:	
 	virtual void Interact_Implementation(APawn* InstigatorPawn) override;
 };

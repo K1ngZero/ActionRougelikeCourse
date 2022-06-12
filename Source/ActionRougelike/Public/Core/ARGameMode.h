@@ -70,4 +70,7 @@ protected:
 public:
 	UFUNCTION(Exec)
 	void KillAll();
+
+	UFUNCTION(Exec)
+	void SetHealth(float InHealth = 100.0f);
 };

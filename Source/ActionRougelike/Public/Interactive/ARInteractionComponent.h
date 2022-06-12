@@ -23,6 +23,13 @@ protected:
 
 	void UpdateInteractionWidget();
 
+public:
+	void PrimaryInteract();
+
+protected:
+	UFUNCTION(Server, Reliable)
+	void Server_PrimaryInteract(AActor* FocusedActor);
+
 	UPROPERTY(Transient)
 	TWeakObjectPtr<AActor> FocusedInteractable = nullptr;
 
@@ -31,7 +38,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Trace")
 	float InteractionTraceRange = 500.0f;
-	
+
 	UPROPERTY(EditDefaultsOnly, Category = "Trace")
 	float InteractionTraceRadius = 30.0f;
 
@@ -40,7 +47,4 @@ protected:
 
 	UPROPERTY()
 	UARWorldUserWidget* DefaultWidgetInstance;
-
-public:
-	void PrimaryInteract();
 };

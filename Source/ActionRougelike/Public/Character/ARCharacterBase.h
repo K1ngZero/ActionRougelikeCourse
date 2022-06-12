@@ -34,4 +34,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	int32 KillBounty = 5;
+
+	UPROPERTY(EditDefaultsOnly)
+	float DamageTakenFractionAsRage = 0.25f;
 };

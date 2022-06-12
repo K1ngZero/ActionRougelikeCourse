@@ -44,6 +44,9 @@ protected:
 	UFUNCTION(BlueprintNativeEvent)
 	bool CanInteract(const APawn* const InstigatorPawn) const;
 
+	UFUNCTION()
+	void OnRep_IsSpawned();
+
 	UPROPERTY(EditDefaultsOnly)
 	float SpawnTime = 5.0f;
 
@@ -51,6 +54,10 @@ protected:
 	float RespawnTime = 15.0f;
 
 	FTimerHandle TimerHandle_SpawnPowerup;
+
+	UPROPERTY(ReplicatedUsing = OnRep_IsSpawned)
+	bool bIsSpawned = false;
+
 
 public:
 	virtual void Interact_Implementation(APawn* InstigatorPawn) override;

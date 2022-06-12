@@ -1,6 +1,7 @@
 #include "Attributes/ARAttributeComponent.h"
 
 #include "Core/ARGameMode.h"
+#include "Net/UnrealNetwork.h"
 
 namespace ARAttributeComponentCVars
 {
@@ -17,6 +18,10 @@ UARAttributeComponent::UARAttributeComponent()
 
 	Health = 100.0f;
 	HealthMax = 100.0f;
+	Rage = 0.0f;
+	RageMax = 100.0f;
+
+	SetIsReplicatedByDefault(true);
 }
 
 void UARAttributeComponent::BeginPlay()
@@ -38,24 +43,58 @@ bool UARAttributeComponent::ApplyHealthChange(AActor* InstigatorActor, float Del
 		Delta *= DamageMultplier;
 	}
 
-	const float OldHealth = Health;
-	Health = FMath::Clamp(Health + Delta, 0.0f, HealthMax);
+	return SetHealth(InstigatorActor, Health + Delta);
+}
 
-	if (Health <= 0.0f && OldHealth > 0.0f)
+bool UARAttributeComponent::SetMaxHealth(AActor* InstigatorActor, float NewMaxHealth)
+{
+	if (NewMaxHealth <= 0.0f)
 	{
-		if (AARGameMode* GameMode = GetWorld()->GetAuthGameMode<AARGameMode>())
+		return false;
+	}
+
+	HealthMax = NewMaxHealth;
+
+	if (HealthMax < Health)
+	{
+		SetHealth(InstigatorActor, HealthMax);
+	}
+
+	return true;
+}
+
+bool UARAttributeComponent::SetHealth(AActor* InstigatorActor, float NewHealth)
+{
+	const float OldHealth = Health;
+	NewHealth = FMath::Clamp(NewHealth, 0.0f, HealthMax);
+
+	if (GetOwner()->HasAuthority())
+	{
+		Health = NewHealth;
+
+		if (Health != OldHealth)
 		{
-			GameMode->OnActorKilled(GetOwner(), InstigatorActor);
+			MulticastHealthChanged(InstigatorActor, Health, OldHealth);
+		}
+
+		if (Health <= 0.0f && OldHealth > 0.0f)
+		{
+			AARGameMode* GameMode = GetWorld()->GetAuthGameMode<AARGameMode>();
+			if (ensure(GameMode))
+			{
+				GameMode->OnActorKilled(GetOwner(), InstigatorActor);
+			}
 		}
 	}
 
-	if(Health != OldHealth)
-	{
-		OnHealthChangedDelegate.Broadcast(InstigatorActor, this, Health, OldHealth);
-		return true;
-	}
-	return false;
+	return NewHealth != OldHealth;
 }
+
+void UARAttributeComponent::MulticastHealthChanged_Implementation(AActor* InstigatorActor, float NewHealth, float OldHealth)
+{
+	OnHealthChangedDelegate.Broadcast(InstigatorActor, this, NewHealth, OldHealth);
+}
+
 
 bool UARAttributeComponent::Kill(AActor* InstigatorActor)
 {
@@ -80,4 +119,32 @@ bool UARAttributeComponent::IsActorAlive(AActor* InActor)
 	}
 
 	return false;
+}
+
+bool UARAttributeComponent::ApplyRageChange(AActor* InstigatorActor, float Delta)
+{
+	const float OldRage = Rage;
+	Rage = FMath::Clamp(Rage + Delta, 0.0f, RageMax);
+
+	if (Rage != OldRage)
+	{
+		MulticastRageChanged(InstigatorActor, Rage, OldRage);
+		return true;
+	}
+	return false;
+}
+
+void UARAttributeComponent::MulticastRageChanged_Implementation(AActor* InstigatorActor, float NewRage, float OldRage)
+{
+	OnRageChangedDelegate.Broadcast(InstigatorActor, this, NewRage, OldRage);
+}
+
+void UARAttributeComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UARAttributeComponent, Health);
+	DOREPLIFETIME(UARAttributeComponent, HealthMax);
+	DOREPLIFETIME(UARAttributeComponent, Rage);
+	DOREPLIFETIME(UARAttributeComponent, RageMax);
 }

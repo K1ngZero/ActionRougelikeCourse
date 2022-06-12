@@ -20,12 +20,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Actions")
-	TArray<TSubclassOf<UARAction>> DefaultActions;
-
-	UPROPERTY()
-	TArray<UARAction*> Actions;
-
 public:	
 	virtual void TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
@@ -42,4 +36,17 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Tags")
 	FGameplayTagContainer ActiveGameplayTags;
+
+protected:
+	UFUNCTION(Server, Reliable)
+	void ServerStartAction(AActor* Instigator, const FName& ActionName);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Actions")
+	TArray<TSubclassOf<UARAction>> DefaultActions;
+
+	UPROPERTY(Replicated)
+	TArray<UARAction*> Actions;
+
+public:
+	virtual bool ReplicateSubobjects(class UActorChannel* Channel, class FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 };

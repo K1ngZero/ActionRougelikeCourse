@@ -30,6 +30,8 @@ AARProjectile::AARProjectile()
 	ProjectileMovementComponent->bRotationFollowsVelocity = true;
 	ProjectileMovementComponent->bInitialVelocityInLocalSpace = true;
 	ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
+
+	SetReplicates(true);
 }
 
 void AARProjectile::PostInitializeComponents()
@@ -66,7 +68,7 @@ void AARProjectile::OnActorOverlap(UPrimitiveComponent* OverlappedComponent, AAc
 			{
 				if (TargetActionComponent && ActionOnHitClass)
 				{
-					TargetActionComponent->AddAction(OtherActor, ActionOnHitClass);
+					TargetActionComponent->AddAction(GetInstigator(), ActionOnHitClass);
 				}
 
 				Explode();
