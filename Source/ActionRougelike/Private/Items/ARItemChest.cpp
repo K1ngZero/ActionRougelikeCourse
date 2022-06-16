@@ -16,6 +16,11 @@ AARItemChest::AARItemChest()
 	SetReplicates(true);
 }
 
+void AARItemChest::OnActorLoaded_Implementation()
+{
+	OnRep_IsLidOpen();
+}
+
 void AARItemChest::Interact_Implementation(APawn* InstigatorPawn)
 {
 	//LidMesh->SetRelativeRotation(FRotator(TargetPitchRotation, 0.0f, 0.0f));

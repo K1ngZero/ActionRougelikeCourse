@@ -26,6 +26,8 @@ protected:
 public:
 	AARItemChest();
 
+	virtual void OnActorLoaded_Implementation() override;
+
 protected:
 	UFUNCTION()
 	void OnRep_IsLidOpen();
@@ -36,7 +38,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	float TargetPitchRotation = 110.0f;
 
-	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_IsLidOpen)
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_IsLidOpen, SaveGame)
 	bool bIsLidOpen = false;
 
 public:	

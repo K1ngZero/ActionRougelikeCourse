@@ -10,3 +10,17 @@ void AARPlayerController::SetPawn(APawn* InPawn)
 
 	OnPawnChangedDelegate.Broadcast(InPawn, PreviousPawn);
 }
+
+void AARPlayerController::BeginPlayingState()
+{
+	Super::BeginPlayingState();
+
+	BP_BeginPlayingState();
+}
+
+void AARPlayerController::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	OnPlayerStateChangedDelegate.Broadcast(PlayerState);
+}

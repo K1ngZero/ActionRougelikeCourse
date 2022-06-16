@@ -32,4 +32,7 @@ class ACTIONROUGELIKE_API IARGameplayInterface
 public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void SaveGameData();
+
+	UFUNCTION(BlueprintNativeEvent)
+	void OnActorLoaded();
 };

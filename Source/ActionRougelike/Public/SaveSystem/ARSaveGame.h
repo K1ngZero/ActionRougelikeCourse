@@ -18,6 +18,9 @@ public:
 
 	UPROPERTY()
 	FVector Velocity;
+
+	UPROPERTY()
+	TArray<uint8> ByteData;
 };
 
 UCLASS()

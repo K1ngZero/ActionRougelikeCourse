@@ -7,6 +7,8 @@
 #include "EnvironmentQuery/EnvQueryTypes.h"
 #include "GameFramework/GameStateBase.h"
 #include "Kismet/GameplayStatics.h"
+#include "Serialization/ObjectAndNameAsStringProxyArchive.h"
+#include "Serialization/MemoryWriter.h"
 
 #include "AI/ARAICharacter.h"
 #include "Attributes/ARAttributeComponent.h"
@@ -43,12 +45,12 @@ void AARGameMode::StartPlay()
 
 void AARGameMode::HandleStartingNewPlayer_Implementation(APlayerController* NewPlayer)
 {
-	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
-
 	if (AARPlayerState* PlayerState = NewPlayer->GetPlayerState<AARPlayerState>())
 	{
 		PlayerState->LoadGameData(CurrentSaveGame);
 	}
+
+	Super::HandleStartingNewPlayer_Implementation(NewPlayer);
 }
 
 void AARGameMode::SpawnPowerups()
@@ -232,6 +234,12 @@ void AARGameMode::WriteSaveGame()
 		ActorData.ActorTransform = Actor->GetActorTransform();
 		ActorData.Velocity = Actor->GetVelocity();
 
+		FMemoryWriter MemoryWriter(ActorData.ByteData);
+		FObjectAndNameAsStringProxyArchive SaveArchive(MemoryWriter, true);
+		SaveArchive.ArIsSaveGame = true;
+
+		Actor->Serialize(SaveArchive);
+
 		CurrentSaveGame->SavedActors.Add(ActorData);
 	}
 
@@ -268,6 +276,14 @@ void AARGameMode::LoadSaveGame()
 					{
 						PrimitiveComponent->AddImpulse(ActorData.Velocity, NAME_None, true);
 					}
+
+					FMemoryReader MemoryReader(ActorData.ByteData);
+					FObjectAndNameAsStringProxyArchive SaveArchive(MemoryReader, true);
+					SaveArchive.ArIsSaveGame = true;
+
+					Actor->Serialize(SaveArchive);
+					IARGameplayInterface::Execute_OnActorLoaded(Actor);
+
 					break;
 				}
 			}
