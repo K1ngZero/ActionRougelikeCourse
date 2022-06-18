@@ -7,6 +7,8 @@
 
 #include "ARAction.generated.h"
 
+class UTexture2D;
+
 class UARActionComponent;
 
 USTRUCT()
@@ -59,6 +61,9 @@ protected:
 	UPROPERTY(Transient, Replicated)
 	UARActionComponent* MyActionComponent;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	UTexture2D* ActionIcon;
+
 	/* Tags applied to OwningActor when activated, removed when action stops */
 	UPROPERTY(EditDefaultsOnly, Category = "Tags")
 	FGameplayTagContainer GrantTags;
@@ -78,4 +83,7 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly)
 	TWeakObjectPtr<AActor> MyInstigator;
+
+	UPROPERTY(Replicated)
+	float TimeStarted;
 };

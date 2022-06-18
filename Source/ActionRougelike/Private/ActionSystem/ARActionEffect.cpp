@@ -1,4 +1,7 @@
 #include "ActionSystem/ARActionEffect.h"
+
+#include "GameFramework/GameStateBase.h"
+
 #include "ActionSystem/ARActionComponent.h"
 
 UARActionEffect::UARActionEffect()
@@ -48,4 +51,15 @@ void UARActionEffect::StopAction_Implementation(AActor* InInstigator)
 void UARActionEffect::ExecutePeriodicEffect_Implementation(AActor* InInstigator)
 {
 	
+}
+
+float UARActionEffect::GetTimeRemaining() const
+{
+	if (AGameStateBase* GameState = GetWorld()->GetGameState<AGameStateBase>())
+	{
+		float EndTime = TimeStarted + Duration;
+		return EndTime - GameState->GetServerWorldTimeSeconds();
+	}
+
+	return Duration;
 }

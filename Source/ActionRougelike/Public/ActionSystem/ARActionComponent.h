@@ -9,6 +9,8 @@
 
 class UARAction;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FAROnActionStateChangedSignature, UARActionComponent*, OwningActionComponent, UARAction*, Action);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ACTIONROUGELIKE_API UARActionComponent : public UActorComponent
 {
@@ -37,6 +39,12 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Tags")
 	FGameplayTagContainer ActiveGameplayTags;
 
+	UPROPERTY(BlueprintAssignable)
+	FAROnActionStateChangedSignature OnActionStartedDelegate;
+
+	UPROPERTY(BlueprintAssignable)
+	FAROnActionStateChangedSignature OnActionStoppedDelegate;
+
 protected:
 	UFUNCTION(Server, Reliable)
 	void ServerStartAction(AActor* Instigator, const FName& ActionName);
@@ -47,7 +55,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Actions")
 	TArray<TSubclassOf<UARAction>> DefaultActions;
 
-	UPROPERTY(Replicated)
+	UPROPERTY(BlueprintReadOnly, Replicated)
 	TArray<UARAction*> Actions;
 
 public:
