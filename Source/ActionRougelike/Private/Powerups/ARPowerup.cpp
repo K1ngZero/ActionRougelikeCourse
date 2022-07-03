@@ -56,6 +56,11 @@ void AARPowerup::Interact_Implementation(APawn* InstigatorPawn)
 	}
 }
 
+FText AARPowerup::GetInteractionMessage_Implementation(APawn* InstigatorPawn)
+{
+	return INVTEXT("");
+}
+
 bool AARPowerup::CanInteract_Implementation(const APawn* const InstigatorPawn) const
 {
 	return true;

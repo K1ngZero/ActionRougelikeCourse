@@ -41,6 +41,12 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void ApplyPowerupEffects(APawn* InstigatorPawn);
 
+public:
+	virtual void Interact_Implementation(APawn* InstigatorPawn) override;
+
+	virtual FText GetInteractionMessage_Implementation(APawn* InstigatorPawn) override;
+
+protected:
 	UFUNCTION(BlueprintNativeEvent)
 	bool CanInteract(const APawn* const InstigatorPawn) const;
 
@@ -57,8 +63,4 @@ protected:
 
 	UPROPERTY(ReplicatedUsing = OnRep_IsSpawned)
 	bool bIsSpawned = false;
-
-
-public:
-	virtual void Interact_Implementation(APawn* InstigatorPawn) override;
 };

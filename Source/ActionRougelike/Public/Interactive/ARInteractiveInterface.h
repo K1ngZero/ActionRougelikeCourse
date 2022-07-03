@@ -17,6 +17,9 @@ class ACTIONROUGELIKE_API IARInteractiveInterface
 public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void Interact(APawn* InstigatorPawn);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	FText GetInteractionMessage(APawn* InstigatorPawn);
 };
 
 UINTERFACE(MinimalAPI)

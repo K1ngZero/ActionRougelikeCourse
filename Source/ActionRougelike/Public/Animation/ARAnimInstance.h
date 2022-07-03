@@ -19,6 +19,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
 	bool bIsStunned = false;
 
-	UPROPERTY(Transient)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+	bool bIsSprinting = false;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Actions")
 	UARActionComponent* ActionComponent;
 };
