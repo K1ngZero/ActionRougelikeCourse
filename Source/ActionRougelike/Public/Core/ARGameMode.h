@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 
+#include "Engine/DataTable.h"
 #include "EnvironmentQuery/EnvQueryTypes.h"
 #include "GameFramework/GameModeBase.h"
 
@@ -12,7 +13,27 @@ class UEnvQuery;
 class UEnvQueryInstanceBlueprintWrapper;
 
 class AARPowerup;
+class UAREnemyData;
 class UARSaveGame;
+
+USTRUCT(BlueprintType)
+struct FAREnemyInfoRow : public FTableRowBase
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	FPrimaryAssetId EnemyDataID;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float Weight = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float SpawnCost = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float KillReward = 1.0f;
+};
 
 UCLASS()
 class ACTIONROUGELIKE_API AARGameMode : public AGameModeBase
@@ -34,6 +55,9 @@ protected:
 	void OnSpawnPowerupsQueryCompleted(UEnvQueryInstanceBlueprintWrapper* InQueryInstance, EEnvQueryStatus::Type InQueryStatus);
 
 	UPROPERTY(Transient, EditDefaultsOnly, Category = "Powerups")
+	UDataTable* EnemiesDataTable;
+
+	UPROPERTY(Transient, EditDefaultsOnly, Category = "Powerups")
 	UEnvQuery* SpawnPowerupsQuery = nullptr;
 
 	UPROPERTY(Transient, EditDefaultsOnly, Category = "Powerups")
@@ -52,14 +76,13 @@ protected:
 	UFUNCTION()
 	void OnSpawnBotQureyCompleted(UEnvQueryInstanceBlueprintWrapper* InQueryInstance, EEnvQueryStatus::Type InQueryStatus);
 
+	void OnEnemyLoaded(FPrimaryAssetId LoadedId, FVector SpawnLocation);
+
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	float SpawnTimerInterval = 10.0f;
 
 	UPROPERTY(Transient, EditDefaultsOnly, Category = "AI")
 	UEnvQuery* SpawnBotQuery = nullptr;
-
-	UPROPERTY(Transient, EditDefaultsOnly, Category = "AI")
-	TSubclassOf<AActor> MinionClass = nullptr;
 
 	UPROPERTY(Transient, EditDefaultsOnly, Category = "AI")
 	UCurveFloat* DifficultyCurve = nullptr;

@@ -3,6 +3,7 @@
 #include "DrawDebugHelpers.h"
 #include "EngineUtils.h"
 #include "Components/PrimitiveComponent.h"
+#include "Engine/AssetManager.h"
 #include "EnvironmentQuery/EnvQueryManager.h"
 #include "EnvironmentQuery/EnvQueryTypes.h"
 #include "GameFramework/GameStateBase.h"
@@ -10,14 +11,17 @@
 #include "Serialization/ObjectAndNameAsStringProxyArchive.h"
 #include "Serialization/MemoryWriter.h"
 
+#include "../ActionRougelike.h"
 #include "AI/ARAICharacter.h"
+#include "ActionSystem/ARActionComponent.h"
 #include "Attributes/ARAttributeComponent.h"
 #include "Character/ARCharacter.h"
+#include "Data/AREnemyData.h"
+#include "Interactive/ARInteractiveInterface.h"
 #include "Player/ARPlayerState.h"
 #include "Powerups/ARPowerup.h"
 #include "SaveSystem/ARSaveGame.h"
 #include "Utilities/ARGameplayFunctionLibrary.h"
-#include "Interactive/ARInteractiveInterface.h"
 
 namespace ARGameModeCVars
 {
@@ -134,15 +138,58 @@ bool AARGameMode::CanSpawnBot() const
 
 void AARGameMode::OnSpawnBotQureyCompleted(UEnvQueryInstanceBlueprintWrapper* InQueryInstance, EEnvQueryStatus::Type InQueryStatus)
 {
+	if (EnemiesDataTable == nullptr)
+	{
+		return;
+	}
+
 	TArray<FVector> SpawnPoints;
 	if (InQueryInstance->GetQueryResultsAsLocations(SpawnPoints))
 	{
-		GetWorld()->SpawnActor<AActor>(MinionClass, SpawnPoints[0], FRotator::ZeroRotator);
-		DrawDebugSphere(GetWorld(), SpawnPoints[0], 50.0f, 12, FColor::Red, false, 5.0f);
+		TArray<FAREnemyInfoRow*> EnemyRows;
+		EnemiesDataTable->GetAllRows("", EnemyRows);
+		
+		int32 RandomEnemyIndex = FMath::RandRange(0, EnemyRows.Num() - 1);
+		FAREnemyInfoRow* SelectedEnemyRow = EnemyRows[RandomEnemyIndex];
+		
+		if (UAssetManager* AssetManager = UAssetManager::GetIfValid())
+		{
+			FStreamableDelegate Delegate = FStreamableDelegate::CreateUObject(this, &AARGameMode::OnEnemyLoaded, SelectedEnemyRow->EnemyDataID, SpawnPoints[0]);
+
+			AssetManager->LoadPrimaryAsset(SelectedEnemyRow->EnemyDataID, {}, Delegate);
+		}
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Spawn bot EQS Query Failed!"));
+	}
+}
+
+void AARGameMode::OnEnemyLoaded(FPrimaryAssetId LoadedId, FVector SpawnLocation)
+{
+	const UAssetManager* const AssetManager = UAssetManager::GetIfValid();
+	if (!AssetManager)
+	{
+		return;
+	}
+
+	const UAREnemyData* const EnemyData = Cast<UAREnemyData>(AssetManager->GetPrimaryAssetObject(LoadedId));
+	if (!EnemyData)
+	{
+		return;
+	}
+		
+	if (AActor* NewEnemy = GetWorld()->SpawnActor<AActor>(EnemyData->EnemyClass, SpawnLocation, FRotator::ZeroRotator))
+	{
+		LogOnScreen(this, FString::Printf(TEXT("Spawned enemy: %s (%s)"), *GetNameSafe(NewEnemy), *GetNameSafe(EnemyData)));
+
+		if (UARActionComponent* ActionComponent = Cast<UARActionComponent>(NewEnemy->GetComponentByClass(UARActionComponent::StaticClass())))
+		{
+			for (const TSubclassOf<UARAction>& ActionClass : EnemyData->Actions)
+			{
+				ActionComponent->AddAction(NewEnemy, ActionClass);
+			}
+		}
 	}
 }
 

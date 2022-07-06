@@ -62,7 +62,7 @@ protected:
 	UARActionComponent* MyActionComponent;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
-	UTexture2D* ActionIcon;
+	TSoftObjectPtr<UTexture2D> ActionIcon;
 
 	/* Tags applied to OwningActor when activated, removed when action stops */
 	UPROPERTY(EditDefaultsOnly, Category = "Tags")
