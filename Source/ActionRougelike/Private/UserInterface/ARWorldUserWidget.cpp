@@ -26,8 +26,9 @@ void UARWorldUserWidget::ProjectPositionToPlayerScreen()
 	AttachedActor->GetActorBounds(true, ActorOrigin, ActorExtent);
 
 	const FVector WidgetPosition = ActorOrigin + FVector(0, 0, ActorExtent.Z);
+	const bool bIsOnScreen = UGameplayStatics::ProjectWorldToScreen(GetOwningPlayer(), WidgetPosition, ScreenPosition);
 
-	if (UGameplayStatics::ProjectWorldToScreen(GetOwningPlayer(), WidgetPosition, ScreenPosition))
+	if (bIsOnScreen)
 	{
 		const float DPIScaling = UWidgetLayoutLibrary::GetViewportScale(this);
 
@@ -37,6 +38,11 @@ void UARWorldUserWidget::ProjectPositionToPlayerScreen()
 		{
 			ParentSizeBox->SetRenderTranslation(ScreenPosition);
 		}
+	}
+
+	if (ParentSizeBox)
+	{
+		ParentSizeBox->SetVisibility(bIsOnScreen ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 	}
 }
 

@@ -36,6 +36,13 @@ void AARGameMode::InitGame(const FString& MapName, const FString& Options, FStri
 {
 	Super::InitGame(MapName, Options, ErrorMessage);
 
+	FString SelectedSaveSlot = UGameplayStatics::ParseOption(Options, TEXT("SaveGame"));
+
+	if (SelectedSaveSlot.Len() > 0)
+	{
+		SaveSlotName = SelectedSaveSlot;
+	}
+
 	LoadSaveGame();
 }
 

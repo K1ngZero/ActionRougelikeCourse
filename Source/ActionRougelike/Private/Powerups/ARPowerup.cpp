@@ -17,7 +17,7 @@ AARPowerup::AARPowerup()
 	SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 	SphereComponent->SetupAttachment(MeshComponent);
 
-	SetReplicates(true);
+	bReplicates = true;
 }
 
 void AARPowerup::BeginPlay()

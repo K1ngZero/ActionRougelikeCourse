@@ -31,7 +31,9 @@ AARProjectile::AARProjectile()
 	ProjectileMovementComponent->bInitialVelocityInLocalSpace = true;
 	ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
 
-	SetReplicates(true);
+
+	InitialLifeSpan = 10.0f;
+	bReplicates = true;
 }
 
 void AARProjectile::PostInitializeComponents()
